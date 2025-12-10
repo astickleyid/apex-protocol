@@ -13,15 +13,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "concurrently": "^8.2.2",
-    "nodemon": "^3.0.2",
-    "vite": "^5.0.8"
+    "nodemon": "^3.1.11",
+    "vite": "^5.4.21"
   }
 }

@@ -12,9 +12,11 @@ const AGENTS = {
   epsilon: { name: "Epsilon", role: "Engineer", persona: "technical feasibility and architecture" }
 };
 
-router.post('/send', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const { message, agentId, ideaContext } = req.body;
+    const { message, context } = req.body;
+    const agentId = context?.agent?.id || 'ALL';
+    const ideaContext = context?.idea;
     
     if (!message || !ideaContext) {
       return res.status(400).json({ error: 'Message and idea context required' });

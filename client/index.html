@@ -10,7 +10,299 @@
     <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
-    <div id="app"></div>
+
+    <!-- 1. TOP NAV: COMMAND STRIP -->
+    <nav class="h-14 bg-stone-950 border-b border-stone-800 flex items-center justify-between px-6 z-50 flex-shrink-0">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 text-orange-500 font-bold tracking-widest text-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                APEX PROTOCOL v5.1
+            </div>
+            <div class="h-6 w-px bg-stone-800"></div>
+            <div class="flex items-center gap-4 text-xs font-mono text-stone-400">
+                <span id="systemStatus" class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500 pulse-slow"></span>SYSTEM READY</span>
+                <span id="datasetId">DATASET: NULL</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="openMissionModal()" class="btn-action px-4 py-1.5 rounded text-xs uppercase shadow-lg flex items-center gap-2">
+                <span>+ New Operation</span>
+            </button>
+            <button onclick="toggleSettings()" class="text-stone-500 hover:text-white transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+        </div>
+    </nav>
+
+    <!-- 2. DATA VISUALIZATION DECK -->
+    <section class="h-64 bg-stone-900 border-b border-stone-800 grid grid-cols-12 gap-0 flex-shrink-0">
+        <!-- Funnel Chart (Process) -->
+        <div class="col-span-4 p-4 border-r border-stone-800 relative">
+            <div class="absolute top-4 left-4 text-xs font-mono font-bold text-stone-500">FILTER VELOCITY</div>
+            <div class="h-full w-full flex items-end pb-2">
+                <canvas id="funnelChart"></canvas>
+            </div>
+        </div>
+        <!-- Market Cap Chart (Winner) -->
+        <div class="col-span-5 p-4 border-r border-stone-800 relative">
+            <div class="absolute top-4 left-4 text-xs font-mono font-bold text-stone-500">VALUATION PROJECTION ($B)</div>
+            <div class="h-full w-full flex items-end pb-2">
+                <canvas id="marketChart"></canvas>
+            </div>
+        </div>
+        <!-- Council Status -->
+        <div class="col-span-3 p-4 bg-stone-950">
+            <div class="text-xs font-mono font-bold text-stone-500 mb-3">COUNCIL UPLINK</div>
+            <div class="space-y-2" id="agentStatusList">
+                <!-- JS Populated -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. MAIN WORKBENCH -->
+    <section class="flex-grow flex overflow-hidden">
+        
+        <!-- LEFT: Candidate Matrix -->
+        <aside class="w-1/3 max-w-md bg-stone-900 border-r border-stone-800 flex flex-col">
+            <div class="p-3 border-b border-stone-800 bg-stone-900 flex justify-between items-center">
+                <span class="text-xs font-bold text-stone-400">TOP 10 CANDIDATES</span>
+                <span class="text-[10px] font-mono text-stone-600">SORT: VALUE_DESC</span>
+            </div>
+            <div class="flex-grow overflow-y-auto" id="candidateList">
+                <!-- JS Populated -->
+                <div class="p-8 text-center text-stone-600 text-sm italic">
+                    Awaiting mission initialization...
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT: Intelligence File (Details) -->
+        <main class="flex-grow bg-stone-950 flex flex-col relative" id="mainPanel">
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-stone-600">
+                <svg class="w-16 h-16 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <p class="font-mono text-sm">SELECT TARGET FROM MATRIX</p>
+            </div>
+
+            <!-- Active Content -->
+            <div id="contentPanel" class="hidden flex flex-col h-full">
+                
+                <!-- File Header -->
+                <div class="h-24 border-b border-stone-800 p-6 flex justify-between items-center bg-stone-900/30 backdrop-blur-sm">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h1 class="text-3xl font-bold text-white tracking-tight" id="detailName">Project Name</h1>
+                            <div class="px-2 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-mono font-bold" id="detailRank">RANK #1</div>
+                        </div>
+                        <div class="text-stone-400 text-sm mt-1 font-light" id="detailTagline">High concept tagline goes here.</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs font-mono text-stone-500">PROJECTED VALUATION</div>
+                        <div class="text-2xl font-bold text-white" id="detailVal">--</div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="h-10 border-b border-stone-800 flex items-center px-6 gap-6 bg-stone-900/50 overflow-x-auto">
+                    <button onclick="setTab('intel')" class="nav-tab active text-xs font-bold uppercase tracking-wider py-2.5" id="tab-intel">Full Intel</button>
+                    <button onclick="setTab('blueprint')" class="nav-tab text-xs font-bold uppercase tracking-wider py-2.5" id="tab-blueprint">Blueprint</button>
+                    <button onclick="setTab('pitch')" class="nav-tab text-xs font-bold uppercase tracking-wider py-2.5" id="tab-pitch">Pitch Deck</button>
+                    <button onclick="setTab('uplink')" class="nav-tab text-xs font-bold uppercase tracking-wider py-2.5 flex items-center gap-2" id="tab-uplink">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Council Uplink
+                    </button>
+                    <!-- WAR ROOM TAB -->
+                    <button onclick="setTab('warroom')" class="nav-tab danger-tab text-xs font-bold uppercase tracking-wider py-2.5 flex items-center gap-2 text-red-500/70 hover:text-red-400 ml-auto" id="tab-warroom">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        War Room
+                    </button>
+                </div>
+
+                <!-- Content Views -->
+                <div class="flex-grow overflow-y-auto p-8 relative custom-scrollbar">
+                    
+                    <!-- TAB: INTEL -->
+                    <div id="view-intel" class="max-w-4xl mx-auto space-y-8 fade-in">
+                        <div class="grid grid-cols-2 gap-8">
+                            <div class="glass-panel p-6 rounded-lg">
+                                <h3 class="text-orange-500 text-xs font-mono font-bold mb-3 uppercase">The Agony</h3>
+                                <p class="text-stone-300 leading-relaxed text-sm" id="intelAgony">...</p>
+                            </div>
+                            <div class="glass-panel p-6 rounded-lg">
+                                <h3 class="text-blue-400 text-xs font-mono font-bold mb-3 uppercase">The Solution</h3>
+                                <p class="text-stone-300 leading-relaxed text-sm" id="intelSolution">...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-6">
+                            <div class="p-4 border border-stone-800 rounded bg-stone-900/50">
+                                <h4 class="text-stone-500 text-xs font-bold uppercase mb-2">Defensibility</h4>
+                                <p class="text-xs text-stone-400 leading-relaxed" id="intelMoat">...</p>
+                            </div>
+                            <div class="p-4 border border-stone-800 rounded bg-stone-900/50">
+                                <h4 class="text-stone-500 text-xs font-bold uppercase mb-2">Revenue Engine</h4>
+                                <p class="text-xs text-stone-400 leading-relaxed" id="intelRev">...</p>
+                            </div>
+                            <div class="p-4 border border-stone-800 rounded bg-stone-900/50">
+                                <h4 class="text-stone-500 text-xs font-bold uppercase mb-2">Market Timing</h4>
+                                <p class="text-xs text-stone-400 leading-relaxed" id="intelWhy">...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: BLUEPRINT -->
+                    <div id="view-blueprint" class="hidden max-w-3xl mx-auto fade-in">
+                        <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+                            <span class="text-orange-500">◈</span> Execution Roadmap
+                        </h3>
+                        <div class="space-y-0 pl-2" id="blueprintContainer">
+                            <!-- Populated JS -->
+                        </div>
+                    </div>
+
+                    <!-- TAB: PITCH DECK (NEW) -->
+                    <div id="view-pitch" class="hidden max-w-5xl mx-auto fade-in h-full">
+                        <div class="flex justify-between items-end mb-6">
+                            <div>
+                                <h3 class="text-white font-bold text-lg mb-1">Pitch Architect</h3>
+                                <p class="text-xs text-stone-500 font-mono">VC-READY SLIDE STRUCTURE GENERATOR</p>
+                            </div>
+                            <button onclick="generatePitch()" class="btn-action px-6 py-2 rounded text-xs uppercase shadow-lg flex items-center gap-2" id="btnGenPitch">
+                                <span>⚡ Generate Deck</span>
+                            </button>
+                        </div>
+                        
+                        <div id="pitchLoading" class="hidden h-64 flex flex-col items-center justify-center border border-stone-800 border-dashed rounded-xl">
+                            <div class="w-12 h-12 border-4 border-stone-700 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+                            <div class="text-orange-500 font-mono text-xs animate-pulse">STRUCTURING NARRATIVE...</div>
+                        </div>
+
+                        <div id="pitchEmpty" class="h-64 flex flex-col items-center justify-center border border-stone-800 border-dashed rounded-xl text-stone-600">
+                            <svg class="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                            <p class="font-mono text-sm">NO DECK GENERATED</p>
+                        </div>
+
+                        <div id="pitchContent" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Slides populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- TAB: UPLINK -->
+                    <div id="view-uplink" class="hidden max-w-3xl mx-auto h-full flex flex-col fade-in">
+                        <!-- Agent Selector -->
+                        <div class="flex-shrink-0 mb-4 p-4 border border-stone-800 rounded bg-stone-900">
+                            <div class="text-xs font-bold text-stone-500 mb-3 uppercase">Targeted Neural Uplink</div>
+                            <div class="flex gap-2" id="chatAgentSelector">
+                                <!-- Populated JS -->
+                            </div>
+                        </div>
+                        
+                        <div id="chatContainer" class="flex-grow overflow-y-auto mb-4 pr-2 space-y-4 min-h-[300px]">
+                            <!-- Chat Bubbles -->
+                        </div>
+
+                        <div class="flex-shrink-0 relative">
+                            <input type="text" id="chatInput" placeholder="Ask specific questions..." 
+                                   class="w-full bg-stone-900 border border-stone-700 rounded p-3 pr-24 text-sm text-white focus:outline-none focus:border-orange-500 font-mono"
+                                   onkeypress="if(event.key === 'Enter') sendChat()">
+                            <button onclick="sendChat()" class="absolute right-1 top-1 bottom-1 bg-orange-600 hover:bg-orange-500 text-white px-4 rounded text-xs font-bold transition-colors">TRANSMIT</button>
+                        </div>
+                    </div>
+
+                    <!-- TAB: WAR ROOM -->
+                    <div id="view-warroom" class="hidden max-w-4xl mx-auto h-full fade-in">
+                        <div class="mb-8 flex justify-between items-end">
+                            <div>
+                                <h3 class="text-red-500 font-bold text-xl mb-1 flex items-center gap-2">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    THREAT SIMULATION
+                                </h3>
+                                <p class="text-xs text-stone-500 font-mono">ADVERSARIAL AI ANALYSIS MODULE</p>
+                            </div>
+                            <button onclick="runWarGame()" class="btn-danger px-6 py-2 rounded text-xs uppercase shadow-lg flex items-center gap-2 transition-transform active:scale-95">
+                                <span>⚡ Run Simulation</span>
+                            </button>
+                        </div>
+
+                        <div id="warRoomContent" class="space-y-6 hidden">
+                            <!-- Scenario Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="warRoomGrid"></div>
+                        </div>
+
+                        <div id="warRoomEmpty" class="border border-stone-800 border-dashed rounded-xl h-64 flex flex-col items-center justify-center text-stone-600">
+                            <span class="text-4xl mb-4">⚔️</span>
+                            <p class="font-mono text-sm">INITIATE WAR GAMES TO IDENTIFY VULNERABILITIES</p>
+                        </div>
+                        
+                        <div id="warRoomLoading" class="hidden h-64 flex flex-col items-center justify-center">
+                            <div class="w-16 h-16 border-4 border-red-900 border-t-red-500 rounded-full animate-spin mb-4"></div>
+                            <div class="text-red-500 font-mono text-xs animate-pulse">GENERATING ADVERSARIAL SCENARIOS...</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- MODALS -->
+    
+    <!-- Simulation Overlay -->
+    <div id="simModal" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center hidden">
+        <div class="w-full max-w-4xl px-8">
+            <div class="flex justify-between items-end mb-4 border-b border-stone-800 pb-2">
+                <h2 class="text-2xl font-bold text-white tracking-widest font-mono">SIMULATION_ACTIVE</h2>
+                <span class="text-orange-500 font-mono text-xs animate-pulse">PROCESSING DATASTREAMS...</span>
+            </div>
+            <div id="simLog" class="h-64 bg-stone-950 border border-stone-800 rounded p-4 font-mono text-xs text-stone-400 overflow-y-auto mb-6 shadow-2xl"></div>
+            <div class="w-full h-1 bg-stone-900 rounded-full overflow-hidden">
+                <div id="simBar" class="h-full bg-gradient-to-r from-blue-600 to-orange-500 w-0 transition-all duration-100"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mission Config -->
+    <div id="missionModal" class="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center hidden">
+        <div class="bg-stone-900 border border-stone-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="bg-stone-950 p-6 border-b border-stone-800">
+                <h3 class="text-white font-bold text-lg">Initialize Operation</h3>
+                <p class="text-stone-500 text-xs font-mono">CONFIGURE PARAMETERS FOR INTEL GENERATION</p>
+            </div>
+            <div class="p-6 space-y-5">
+                <div>
+                    <label class="text-xs font-bold text-stone-400 uppercase block mb-1.5">Target Domain</label>
+                    <input type="text" id="inpDomain" placeholder="e.g. Sustainable Aviation Fuel" class="w-full bg-stone-950 border border-stone-800 rounded p-3 text-sm text-white focus:border-orange-500 outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-stone-400 uppercase block mb-1.5">Catalyst (Constraint)</label>
+                    <input type="text" id="inpCatalyst" placeholder="e.g. Must use Blockchain" class="w-full bg-stone-950 border border-stone-800 rounded p-3 text-sm text-white focus:border-orange-500 outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-stone-400 uppercase block mb-1.5">Risk Profile</label>
+                    <select id="inpRisk" class="w-full bg-stone-950 border border-stone-800 rounded p-3 text-sm text-white focus:border-orange-500 outline-none">
+                        <option value="safe">Safe Utility (Low Risk)</option>
+                        <option value="balanced" selected>Balanced Growth</option>
+                        <option value="moonshot">Disruptive Moonshot (High Risk)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-6 border-t border-stone-800 flex justify-end gap-3 bg-stone-950">
+                <button onclick="closeMissionModal()" class="text-stone-500 hover:text-white text-sm font-bold px-4">CANCEL</button>
+                <button onclick="runSimulation()" class="btn-action px-6 py-2 rounded text-sm shadow-lg">INITIALIZE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settingsModal" class="fixed inset-0 z-[90] bg-black/90 flex items-center justify-center hidden">
+        <div class="bg-stone-900 border border-stone-800 p-6 rounded-lg w-96">
+            <h3 class="text-white font-bold mb-4">API Configuration</h3>
+            <input type="password" id="apiKeyInp" placeholder="Gemini API Key" class="w-full bg-stone-950 border border-stone-800 rounded p-2 text-sm text-white mb-4">
+            <div class="flex justify-end gap-2">
+                <button onclick="toggleSettings()" class="text-stone-500 hover:text-white text-sm">Close</button>
+                <button onclick="saveKey()" class="bg-stone-800 hover:bg-stone-700 text-white px-4 py-2 rounded text-sm">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
 </body>
 </html>

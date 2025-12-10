@@ -3,7 +3,7 @@ import { callGemini, parseJSON } from '../services/gemini.js';
 
 const router = express.Router();
 
-router.post('/simulate', async (req, res) => {
+router.post('/analyze', async (req, res) => {
   try {
     const { idea } = req.body;
     

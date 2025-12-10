@@ -1,0 +1,201 @@
+/* --- THEME: DEEP COMMAND --- */
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #0c0a09; 
+    color: #e7e5e4; 
+    overflow: hidden; 
+}
+
+.font-mono { 
+    font-family: 'JetBrains Mono', monospace; 
+}
+
+/* SCROLLBARS */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1c1917; }
+::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #57534e; }
+
+/* ANIMATIONS */
+.fade-in { 
+    animation: fadeIn 0.4s ease-out forwards; 
+    opacity: 0; 
+    transform: translateY(10px); 
+}
+
+@keyframes fadeIn { 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+.pulse-slow { 
+    animation: pulse 3s infinite; 
+}
+
+@keyframes pulse { 
+    0%, 100% { opacity: 1; } 
+    50% { opacity: 0.5; } 
+}
+
+/* UI COMPONENTS */
+.glass-panel { 
+    background: rgba(28, 25, 23, 0.7); 
+    backdrop-filter: blur(12px); 
+    border: 1px solid rgba(68, 64, 60, 0.5); 
+}
+
+.glass-panel:hover { 
+    border-color: rgba(249, 115, 22, 0.3); 
+}
+
+.btn-action { 
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); 
+    color: white; 
+    font-weight: 700; 
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.2);
+}
+
+.btn-action:hover { 
+    transform: translateY(-1px); 
+    box-shadow: 0 6px 16px rgba(234, 88, 12, 0.4); 
+}
+
+.btn-action:active { 
+    transform: translateY(0); 
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.btn-danger:hover { 
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4); 
+}
+
+.idea-row { 
+    transition: all 0.2s; 
+    border-left: 3px solid transparent; 
+}
+
+.idea-row:hover { 
+    background: #292524; 
+}
+
+.idea-row.active { 
+    background: #1c1917; 
+    border-left-color: #f97316; 
+}
+
+/* BLUEPRINT TIMELINE */
+.timeline-node { 
+    position: relative; 
+    padding-left: 24px; 
+    border-left: 2px solid #44403c; 
+    padding-bottom: 24px; 
+}
+
+.timeline-node:last-child { 
+    border-left: 2px solid transparent; 
+}
+
+.timeline-dot { 
+    position: absolute; 
+    left: -7px; 
+    top: 0; 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 50%; 
+    background: #1c1917; 
+    border: 2px solid #78716c; 
+    transition: all 0.3s; 
+}
+
+.timeline-node:hover .timeline-dot { 
+    background: #f97316; 
+    border-color: #f97316; 
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5); 
+}
+
+/* CHAT & AGENT SELECTOR */
+.chat-bubble { 
+    max-width: 85%; 
+    padding: 12px; 
+    border-radius: 8px; 
+    font-size: 0.9rem; 
+    margin-bottom: 12px; 
+    line-height: 1.5; 
+}
+
+.chat-user { 
+    background: #292524; 
+    color: #fff; 
+    align-self: flex-end; 
+    border: 1px solid #44403c; 
+}
+
+.chat-ai { 
+    background: #1c1917; 
+    color: #d6d3d1; 
+    align-self: flex-start; 
+    border: 1px solid #44403c; 
+    border-left: 3px solid #f97316; 
+}
+
+.agent-toggle { 
+    opacity: 0.5; 
+    filter: grayscale(100%); 
+    transition: all 0.2s; 
+    border: 1px solid transparent; 
+}
+
+.agent-toggle:hover { 
+    opacity: 0.8; 
+    filter: grayscale(50%); 
+}
+
+.agent-toggle.selected { 
+    opacity: 1; 
+    filter: grayscale(0%); 
+    border-color: #f97316; 
+    background: #292524; 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
+}
+
+/* SLIDES */
+.slide-card { 
+    background: #1c1917; 
+    border: 1px solid #292524; 
+    transition: all 0.3s; 
+}
+
+.slide-card:hover { 
+    border-color: #f97316; 
+    transform: scale(1.01); 
+}
+
+/* TABS */
+.nav-tab { 
+    border-bottom: 2px solid transparent; 
+    color: #78716c; 
+    transition: all 0.2s; 
+}
+
+.nav-tab:hover { 
+    color: #d6d3d1; 
+}
+
+.nav-tab.active { 
+    border-bottom-color: #f97316; 
+    color: #fff; 
+}
+
+.nav-tab.danger-tab.active { 
+    border-bottom-color: #ef4444; 
+    color: #fca5a5; 
+}

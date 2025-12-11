@@ -3,12 +3,8 @@
   "appName": "Apex Protocol",
   "webDir": "dist",
   "server": {
-    "url": "http://localhost:3001",
-    "cleartext": true,
-    "allowNavigation": [
-      "localhost",
-      "127.0.0.1"
-    ]
+    "url": "http://192.168.12.152:3000",
+    "cleartext": true
   },
   "ios": {
     "contentInset": "always"

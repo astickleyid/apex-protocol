@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Apex Protocol | Mobile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/loader.css">
+    <link rel="stylesheet" href="/src/mobile-complete.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #0c0a09; 
+            color: #e7e5e4; 
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1c1917; }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(to bottom, #f97316, #ea580c); 
+            border-radius: 4px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #f97316; }
+        
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316, #ea580c);
+            z-index: 10000;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Scroll Progress Indicator -->
+    <div class="scroll-indicator" id="scrollProgress"></div>
+
+    <!-- Loading Screen -->
+    <div id="apex-loader">
+        <div style="position: relative;">
+            <div class="loader-ring-2"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-icon">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10L20 90L50 70L80 90L50 10Z" fill="#f97316" opacity="0.9"/>
+                    <path d="M50 10L20 90L50 70L80 90L50 10Z" stroke="#ea580c" stroke-width="2"/>
+                    <circle cx="50" cy="50" r="3" fill="#fff"/>
+                </svg>
+            </div>
+        </div>
+        <div class="loader-text">INITIALIZING<span class="loader-dots"></span></div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="mobileApp">
+        
+        <!-- IDEAS VIEW -->
+        <div id="view-ideas" class="mobile-view active">
+            <div class="mobile-ideas-header">
+                <div class="mobile-ideas-title">APEX PROTOCOL</div>
+                <div class="mobile-ideas-subtitle" id="ideasCount">0 OPERATIONS READY</div>
+            </div>
+            <div class="mobile-ideas-list" id="ideasList"></div>
+        </div>
+
+        <!-- DETAIL VIEW -->
+        <div id="view-detail" class="mobile-view">
+            <div class="mobile-detail-header">
+                <button class="mobile-detail-back" onclick="showView('ideas')">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Back to Ideas
+                </button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span class="mobile-idea-rank" id="detailRank">#1</span>
+                    <span class="mobile-idea-value" id="detailValue">$10M</span>
+                </div>
+                <div class="mobile-idea-name" id="detailName">Project Name</div>
+                <div class="mobile-idea-tagline" id="detailTagline">Tagline here</div>
+            </div>
+            
+            <div class="mobile-detail-tabs">
+                <div class="mobile-detail-tab active" onclick="showDetailTab('intel')">Intel</div>
+                <div class="mobile-detail-tab" onclick="showDetailTab('blueprint')">Blueprint</div>
+                <div class="mobile-detail-tab" onclick="showDetailTab('pitch')">Pitch</div>
+                <div class="mobile-detail-tab" onclick="showDetailTab('council')">Council</div>
+                <div class="mobile-detail-tab" onclick="showDetailTab('warroom')">War Room</div>
+            </div>
+            
+            <div class="mobile-detail-content">
+                <!-- Intel Tab -->
+                <div id="tab-intel" class="mobile-tab-content active"></div>
+                
+                <!-- Blueprint Tab -->
+                <div id="tab-blueprint" class="mobile-tab-content" style="display:none;"></div>
+                
+                <!-- Pitch Tab -->
+                <div id="tab-pitch" class="mobile-tab-content" style="display:none;">
+                    <div style="padding: 1rem;">
+                        <button onclick="generateMobilePitch()" class="mobile-submit-btn">Generate Pitch Deck</button>
+                        <div id="pitchContent" style="margin-top: 1.5rem;"></div>
+                    </div>
+                </div>
+                
+                <!-- Council Tab -->
+                <div id="tab-council" class="mobile-tab-content mobile-chat-container" style="display:none;">
+                    <div class="mobile-chat-header">
+                        <div style="margin-bottom: 1rem;">
+                            <div style="color: #f97316; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem;">SELECT AGENT</div>
+                            <div class="mobile-agent-grid" id="agentGrid"></div>
+                        </div>
+                    </div>
+                    <div class="mobile-chat-messages" id="chatMessages"></div>
+                    <div class="mobile-chat-input-wrapper">
+                        <input type="text" id="chatInput" class="mobile-chat-input" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') sendMobileChat()">
+                        <button class="mobile-chat-send" onclick="sendMobileChat()">SEND</button>
+                    </div>
+                </div>
+                
+                <!-- War Room Tab -->
+                <div id="tab-warroom" class="mobile-tab-content" style="display:none;">
+                    <div style="padding: 1rem;">
+                        <button onclick="runMobileWarRoom()" class="mobile-submit-btn" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">Run War Games</button>
+                        <div id="warRoomContent" style="margin-top: 1.5rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW OPERATION VIEW -->
+        <div id="view-new" class="mobile-view">
+            <div class="mobile-new-op">
+                <div class="mobile-new-header">
+                    <div class="mobile-new-title">New Operation</div>
+                    <div class="mobile-new-subtitle">Configure parameters to generate startup ideas</div>
+                </div>
+                
+                <form onsubmit="event.preventDefault(); runMobileOperation();">
+                    <div class="mobile-form-group">
+                        <label class="mobile-form-label">Target Domain</label>
+                        <input type="text" id="newDomain" class="mobile-form-input" placeholder="e.g. AI-powered healthcare" required>
+                    </div>
+                    
+                    <div class="mobile-form-group">
+                        <label class="mobile-form-label">Catalyst (Optional)</label>
+                        <textarea id="newCatalyst" class="mobile-form-textarea" placeholder="e.g. Must use blockchain technology"></textarea>
+                    </div>
+                    
+                    <div class="mobile-form-group">
+                        <label class="mobile-form-label">Risk Profile</label>
+                        <select id="newRisk" class="mobile-form-select">
+                            <option value="safe">Safe Utility (Low Risk)</option>
+                            <option value="balanced" selected>Balanced Growth</option>
+                            <option value="moonshot">Disruptive Moonshot (High Risk)</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="mobile-submit-btn">Initialize Operation</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div id="view-settings" class="mobile-view">
+            <div class="mobile-settings">
+                <div class="mobile-settings-header">
+                    <div class="mobile-settings-title">Settings</div>
+                    <div class="mobile-settings-subtitle">Configure your Apex Protocol installation</div>
+                </div>
+                
+                <div class="mobile-settings-section">
+                    <label class="mobile-settings-label">Gemini API Key</label>
+                    <input type="password" id="settingsApiKey" class="mobile-form-input" placeholder="Enter your API key">
+                    <button onclick="saveMobileSettings()" class="mobile-submit-btn" style="margin-top: 1rem;">Save Configuration</button>
+                </div>
+                
+                <div class="mobile-settings-section">
+                    <label class="mobile-settings-label">About</label>
+                    <div style="color: #78716c; font-size: 0.85rem; line-height: 1.6;">
+                        <p><strong>Apex Protocol v5.1</strong></p>
+                        <p>AI-powered startup idea generator</p>
+                        <p style="margin-top: 0.5rem;">Made with ❤️ for innovators</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="mobile-nav">
+        <div class="mobile-nav-item active" onclick="showView('ideas')" data-view="ideas">
+            <svg class="mobile-nav-icon" viewBox="0 0 24 24">
+                <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            <span class="mobile-nav-label">Ideas</span>
+        </div>
+        <div class="mobile-nav-item" onclick="showView('new')" data-view="new">
+            <svg class="mobile-nav-icon" viewBox="0 0 24 24">
+                <path d="M12 4v16m8-8H4"/>
+            </svg>
+            <span class="mobile-nav-label">New</span>
+        </div>
+        <div class="mobile-nav-item" onclick="showView('settings')" data-view="settings">
+            <svg class="mobile-nav-icon" viewBox="0 0 24 24">
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span class="mobile-nav-label">Settings</span>
+        </div>
+    </nav>
+
+    <script type="module" src="/src/mobile-app.js"></script>
+</body>
+</html>

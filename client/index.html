@@ -8,8 +8,27 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/styles.css">
+    <link rel="stylesheet" href="/src/loader.css">
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Loading Screen -->
+    <div id="apex-loader">
+        <div style="position: relative;">
+            <div class="loader-ring-2"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-icon">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10L20 90L50 70L80 90L50 10Z" fill="#f97316" opacity="0.9"/>
+                    <path d="M50 10L20 90L50 70L80 90L50 10Z" stroke="#ea580c" stroke-width="2"/>
+                    <circle cx="50" cy="50" r="3" fill="#fff"/>
+                </svg>
+            </div>
+        </div>
+        <div class="loader-text">
+            INITIALIZING<span class="loader-dots"></span>
+        </div>
+    </div>
 
     <!-- 1. TOP NAV: COMMAND STRIP -->
     <nav class="h-14 bg-stone-950 border-b border-stone-800 flex items-center justify-between px-6 z-50 flex-shrink-0">

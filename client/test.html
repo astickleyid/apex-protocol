@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+    <style>
+        body { 
+            background: #0c0a09; 
+            color: #f97316; 
+            font-family: monospace; 
+            padding: 40px;
+            font-size: 24px;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>iOS Connection Test</h1>
+    <div id="status">Testing...</div>
+    <div id="result"></div>
+    
+    <script>
+        const status = document.getElementById('status');
+        const result = document.getElementById('result');
+        
+        status.className = 'success';
+        status.textContent = '✅ JavaScript Running!';
+        
+        // Test API
+        fetch('/api/health')
+            .then(res => res.json())
+            .then(data => {
+                result.className = 'success';
+                result.innerHTML = '<br>✅ API Connected!<br>' + JSON.stringify(data, null, 2);
+            })
+            .catch(err => {
+                result.className = 'error';
+                result.innerHTML = '<br>❌ API Failed: ' + err.message;
+            });
+    </script>
+</body>
+</html>

@@ -38,6 +38,15 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         loadFallback(); 
     }
+    
+    // Hide loader after app initializes
+    setTimeout(() => {
+        const loader = document.getElementById('apex-loader');
+        if (loader) {
+            loader.classList.add('hidden');
+            setTimeout(() => loader.remove(), 500);
+        }
+    }, 1500);
 });
 
 // --- CORE LOGIC ---

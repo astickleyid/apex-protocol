@@ -1,5 +1,8 @@
 // --- CONSTANTS ---
+import { getApiUrl } from './api-config.js';
+
 const MODEL = "gemini-2.0-flash-exp";
+const API_BASE = getApiUrl();
 let apiKey = "";
 let appState = { ideas: [], activeId: null, selectedAgent: "ALL" };
 
@@ -46,6 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
             loader.classList.add('hidden');
             setTimeout(() => loader.remove(), 500);
         }
+        
+        // Initialize mobile views
+        renderMobileIdeas();
+        const mobileApiKeyInput = document.getElementById('mobileApiKey');
+        if (mobileApiKeyInput && apiKey) {
+            mobileApiKeyInput.value = apiKey;
+        }
     }, 1500);
 });
 
@@ -83,7 +93,7 @@ async function runSimulation() {
         
         if(apiKey) {
             // Real AI Call
-            const res = await fetch('/api/ideas/generate', {
+            const res = await fetch(API_BASE + '/ideas/generate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ domain, catalyst, risk })
@@ -129,7 +139,7 @@ async function generatePitch() {
     try {
         let slides = [];
         if(apiKey) {
-            const res = await fetch('/api/pitch/generate', {
+            const res = await fetch(API_BASE + '/pitch/generate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ ideaId: idea.id, idea })
@@ -185,7 +195,7 @@ async function runWarGame() {
     try {
         let scenarios = [];
         if(apiKey) {
-            const res = await fetch('/api/warroom/analyze', {
+            const res = await fetch(API_BASE + '/warroom/analyze', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ ideaId: idea.id, idea })
@@ -364,7 +374,7 @@ async function sendChat() {
     const agent = AGENTS.find(a => a.id === appState.selectedAgent);
     
     try {
-        const res = await fetch('/api/chat', {
+        const res = await fetch(API_BASE + '/chat', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ 
@@ -407,7 +417,7 @@ function setTab(name) {
 }
 
 function loadFallback() {
-    fetch('/api/ideas/fallback')
+    fetch(API_BASE + '/ideas/fallback')
         .then(res => res.json())
         .then(data => {
             appState.ideas = data.ideas;
@@ -451,3 +461,140 @@ window.runWarGame = runWarGame;
 window.selectAgent = selectAgent;
 window.sendChat = sendChat;
 window.setTab = setTab;
+
+// Mobile Navigation Functions
+window.showMobileView = function(viewName) {
+    // Hide all mobile views
+    document.querySelectorAll('.mobile-view').forEach(v => v.classList.remove('active'));
+    // Show selected view
+    document.getElementById(`mobile-${viewName}-view`).classList.add('active');
+    
+    // Update nav active state
+    document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+};
+
+window.renderMobileIdeas = function() {
+    const container = document.getElementById('mobileIdeasList');
+    container.innerHTML = '';
+    
+    if (appState.ideas.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 3rem 1rem; color: #78716c;">
+                <svg style="width: 64px; height: 64px; margin: 0 auto 1rem; opacity: 0.3;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">No ideas generated yet</p>
+                <p style="font-size: 0.75rem; margin-top: 0.5rem;">Tap "New" to create an operation</p>
+            </div>
+        `;
+        return;
+    }
+    
+    appState.ideas.forEach((idea, idx) => {
+        const card = document.createElement('div');
+        card.className = 'mobile-idea-card';
+        card.onclick = () => showMobileDetail(idea.id);
+        card.innerHTML = `
+            <div class="mobile-idea-header">
+                <span class="mobile-idea-rank">#${idx + 1}</span>
+                <span class="mobile-idea-value">${idea.valuation || '$10M'}</span>
+            </div>
+            <div class="mobile-idea-name">${idea.name}</div>
+            <div class="mobile-idea-tagline">${idea.tagline}</div>
+        `;
+        container.appendChild(card);
+    });
+};
+
+window.showMobileDetail = function(id) {
+    const idea = appState.ideas.find(i => i.id === id);
+    if (!idea) return;
+    
+    appState.activeId = id;
+    const idx = appState.ideas.indexOf(idea);
+    
+    document.getElementById('mobileDetailRank').textContent = `RANK #${idx + 1}`;
+    document.getElementById('mobileDetailName').textContent = idea.name;
+    document.getElementById('mobileDetailTagline').textContent = idea.tagline;
+    
+    const content = document.getElementById('mobileDetailContent');
+    content.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <div style="color: #f97316; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">The Agony</div>
+            <p style="color: #d6d3d1; line-height: 1.6; font-size: 0.9rem;">${idea.agony}</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <div style="color: #3b82f6; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">The Solution</div>
+            <p style="color: #d6d3d1; line-height: 1.6; font-size: 0.9rem;">${idea.solution}</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <div style="color: #78716c; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Defensibility</div>
+            <p style="color: #a8a29e; line-height: 1.5; font-size: 0.85rem;">${idea.moat}</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <div style="color: #78716c; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Revenue Model</div>
+            <p style="color: #a8a29e; line-height: 1.5; font-size: 0.85rem;">${idea.revenue}</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <div style="color: #78716c; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Market Timing</div>
+            <p style="color: #a8a29e; line-height: 1.5; font-size: 0.85rem;">${idea.whynow || 'Market conditions optimal.'}</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <div style="color: #78716c; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Blueprint</div>
+            ${(idea.blueprint || []).map((step, i) => `
+                <div style="background: #1c1917; border: 1px solid #292524; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem;">
+                    <div style="color: #f97316; font-size: 0.65rem; font-weight: 700; margin-bottom: 0.25rem;">PHASE ${i + 1}</div>
+                    <div style="color: #d6d3d1; font-size: 0.85rem; line-height: 1.4;">${step}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    showMobileView('detail');
+};
+
+window.mobileRunSimulation = async function() {
+    const domain = document.getElementById('mobileDomain').value || 'General Tech';
+    const catalyst = document.getElementById('mobileCatalyst').value;
+    const risk = document.getElementById('mobileRisk').value;
+    
+    showMobileView('ideas');
+    
+    const loader = document.getElementById('apex-loader');
+    loader.classList.remove('hidden');
+    loader.style.display = 'flex';
+    
+    try {
+        const res = await fetch(API_BASE + '/ideas/generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ domain, catalyst, risk })
+        });
+        const data = await res.json();
+        appState.ideas = data.ideas;
+        renderMobileIdeas();
+        updateCharts(appState.ideas);
+        renderList();
+    } catch(e) {
+        console.error(e);
+        const ideas = getFallbackIdeas(domain);
+        appState.ideas = ideas;
+        renderMobileIdeas();
+        updateCharts(ideas);
+        renderList();
+    }
+    
+    setTimeout(() => {
+        loader.classList.add('hidden');
+        setTimeout(() => loader.style.display = 'none', 500);
+    }, 1500);
+};
+
+window.saveMobileApiKey = function() {
+    const key = document.getElementById('mobileApiKey').value;
+    apiKey = key;
+    localStorage.setItem('apex_key', key);
+    document.getElementById('apiKeyInp').value = key;
+    alert('API Key saved!');
+};

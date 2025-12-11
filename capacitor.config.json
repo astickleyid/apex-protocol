@@ -2,10 +2,6 @@
   "appId": "com.apex.protocol",
   "appName": "Apex Protocol",
   "webDir": "dist",
-  "server": {
-    "url": "http://192.168.12.152:3000",
-    "cleartext": true
-  },
   "ios": {
     "contentInset": "always"
   },

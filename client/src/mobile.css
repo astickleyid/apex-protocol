@@ -1,0 +1,244 @@
+/* Mobile Optimizations for Apex Protocol */
+
+@media (max-width: 768px) {
+    /* Make top nav more compact */
+    nav.h-14 {
+        height: 3.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    nav .text-sm {
+        font-size: 0.7rem;
+    }
+    
+    nav .gap-6 {
+        gap: 0.75rem;
+    }
+    
+    /* Hide less important nav items on mobile */
+    #systemStatus, #datasetId {
+        display: none;
+    }
+    
+    /* Reduce chart section height */
+    section.h-64 {
+        height: 12rem;
+    }
+    
+    /* Stack main sections vertically on mobile */
+    section.flex-grow.flex {
+        flex-direction: column;
+    }
+    
+    /* Candidate list full width on mobile */
+    aside.w-1\/3 {
+        width: 100%;
+        max-width: 100%;
+        max-height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid #292524;
+    }
+    
+    /* Adjust main panel */
+    main.flex-grow {
+        width: 100%;
+    }
+    
+    /* Reduce header height */
+    .h-24 {
+        height: auto;
+        min-height: 4rem;
+        padding: 1rem;
+    }
+    
+    /* Make detail header responsive */
+    #contentPanel .h-24 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    #contentPanel .h-24 > div:first-child {
+        width: 100%;
+    }
+    
+    #contentPanel .h-24 > div:last-child {
+        width: 100%;
+        text-align: left;
+    }
+    
+    /* Smaller title */
+    #detailName {
+        font-size: 1.5rem;
+    }
+    
+    /* Smaller valuation */
+    #detailVal {
+        font-size: 1.25rem;
+    }
+    
+    /* Make tabs scrollable */
+    .h-10.flex.items-center {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .nav-tab {
+        flex-shrink: 0;
+    }
+    
+    /* Adjust content padding */
+    .p-8 {
+        padding: 1rem;
+    }
+    
+    /* Stack intel grid vertically */
+    .grid.grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid.grid-cols-3 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Smaller glass panels */
+    .glass-panel {
+        padding: 1rem;
+    }
+    
+    .glass-panel p {
+        font-size: 0.875rem;
+    }
+    
+    /* Candidate list items more compact */
+    .idea-row {
+        padding: 0.75rem;
+    }
+    
+    .idea-row .text-sm {
+        font-size: 0.8rem;
+    }
+    
+    /* Reduce modal size */
+    #missionModal > div {
+        max-width: 90vw;
+        margin: 1rem;
+    }
+    
+    /* Make buttons larger for touch */
+    .btn-action, .btn-danger {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Optimize chart cards */
+    .slide-card {
+        padding: 1rem;
+    }
+    
+    .grid.grid-cols-4 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* Chat interface adjustments */
+    .chat-bubble {
+        max-width: 95%;
+        font-size: 0.85rem;
+    }
+    
+    #chatInput {
+        font-size: 1rem; /* Prevent zoom on iOS */
+    }
+    
+    /* Agent selector */
+    #chatAgentSelector {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .agent-toggle {
+        font-size: 0.6rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* War room grid */
+    .grid.grid-cols-1.md\\:grid-cols-3 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Better text readability */
+    body {
+        -webkit-text-size-adjust: 100%;
+    }
+    
+    /* Scrollbars less intrusive on mobile */
+    ::-webkit-scrollbar {
+        width: 3px;
+        height: 3px;
+    }
+    
+    /* Loading screen adjustments */
+    .loader-icon {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .loader-ring {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .loader-ring-2 {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .loader-text {
+        font-size: 12px;
+    }
+}
+
+/* iPhone specific optimizations */
+@media (max-width: 428px) {
+    /* Extra compact for smaller phones */
+    nav .flex.items-center.gap-2 {
+        font-size: 0.65rem;
+    }
+    
+    section.h-64 {
+        height: 10rem;
+    }
+    
+    aside.w-1\/3 {
+        max-height: 30vh;
+    }
+    
+    #detailName {
+        font-size: 1.25rem;
+    }
+    
+    /* Ensure touch targets are large enough */
+    button, .idea-row {
+        min-height: 44px;
+    }
+}
+
+/* Landscape mode */
+@media (max-width: 926px) and (orientation: landscape) {
+    section.h-64 {
+        height: 8rem;
+    }
+    
+    aside.w-1\/3 {
+        max-height: 60vh;
+    }
+    
+    .loader-icon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 20px;
+    }
+}

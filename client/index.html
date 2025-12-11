@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/styles.css">
     <link rel="stylesheet" href="/src/loader.css">
+    <link rel="stylesheet" href="/src/mobile.css">
+    <link rel="stylesheet" href="/src/mobile-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
@@ -29,6 +32,86 @@
             INITIALIZING<span class="loader-dots"></span>
         </div>
     </div>
+
+    <!-- Mobile Views (Hidden on Desktop) -->
+    <div id="mobile-ideas-view" class="mobile-view active">
+        <div class="mobile-ideas-list" id="mobileIdeasList">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <div id="mobile-detail-view" class="mobile-view">
+        <div class="mobile-detail-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <button onclick="showMobileView('ideas')" style="color: #f97316;">← Back</button>
+                <span class="mobile-idea-rank" id="mobileDetailRank">RANK #1</span>
+            </div>
+            <h2 class="mobile-idea-name" id="mobileDetailName">Project Name</h2>
+            <p class="mobile-idea-tagline" id="mobileDetailTagline">Tagline</p>
+        </div>
+        <div class="mobile-detail-content" id="mobileDetailContent">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <div id="mobile-new-view" class="mobile-view">
+        <div class="mobile-new-op">
+            <h2 style="color: #f97316; font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">New Operation</h2>
+            <form onsubmit="event.preventDefault(); mobileRunSimulation();">
+                <div class="mobile-form-group">
+                    <label class="mobile-form-label">Target Domain</label>
+                    <input type="text" id="mobileDomain" class="mobile-form-input" placeholder="e.g. AI-powered education" />
+                </div>
+                <div class="mobile-form-group">
+                    <label class="mobile-form-label">Catalyst (Optional)</label>
+                    <input type="text" id="mobileCatalyst" class="mobile-form-input" placeholder="e.g. Must use blockchain" />
+                </div>
+                <div class="mobile-form-group">
+                    <label class="mobile-form-label">Risk Profile</label>
+                    <select id="mobileRisk" class="mobile-form-select">
+                        <option value="safe">Safe Utility (Low Risk)</option>
+                        <option value="balanced" selected>Balanced Growth</option>
+                        <option value="moonshot">Disruptive Moonshot</option>
+                    </select>
+                </div>
+                <button type="submit" class="mobile-submit-btn">Initialize Operation</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="mobile-settings-view" class="mobile-view">
+        <div class="mobile-settings">
+            <h2 style="color: #f97316; font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">Settings</h2>
+            <div class="mobile-settings-section">
+                <label class="mobile-settings-label">Gemini API Key</label>
+                <input type="password" id="mobileApiKey" class="mobile-form-input" placeholder="Enter API key" />
+                <button onclick="saveMobileApiKey()" class="mobile-submit-btn" style="margin-top: 1rem;">Save Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <div class="mobile-nav-item active" onclick="showMobileView('ideas')" data-view="ideas">
+            <svg class="mobile-nav-icon" viewBox="0 0 24 24">
+                <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            <span class="mobile-nav-label">Ideas</span>
+        </div>
+        <div class="mobile-nav-item" onclick="showMobileView('new')" data-view="new">
+            <svg class="mobile-nav-icon" viewBox="0 0 24 24">
+                <path d="M12 4v16m8-8H4"/>
+            </svg>
+            <span class="mobile-nav-label">New</span>
+        </div>
+        <div class="mobile-nav-item" onclick="showMobileView('settings')" data-view="settings">
+            <svg class="mobile-nav-icon" viewBox="0 0 24 24">
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span class="mobile-nav-label">Settings</span>
+        </div>
+    </nav>
 
     <!-- 1. TOP NAV: COMMAND STRIP -->
     <nav class="h-14 bg-stone-950 border-b border-stone-800 flex items-center justify-between px-6 z-50 flex-shrink-0">

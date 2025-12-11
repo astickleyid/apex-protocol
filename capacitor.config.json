@@ -1,0 +1,16 @@
+{
+  "appId": "com.apex.protocol",
+  "appName": "Apex Protocol",
+  "webDir": "dist",
+  "server": {
+    "url": "http://localhost:3001",
+    "cleartext": true,
+    "allowNavigation": [
+      "localhost",
+      "127.0.0.1"
+    ]
+  },
+  "ios": {
+    "contentInset": "always"
+  }
+}

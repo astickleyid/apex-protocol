@@ -1,12 +1,18 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import ideaRoutes from './routes/ideas.js';
 import chatRoutes from './routes/chat.js';
 import pitchRoutes from './routes/pitch.js';
 import warRoomRoutes from './routes/warroom.js';
 
-dotenv.config();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: join(__dirname, '../../.env') });
+
+console.log('🔑 API Key loaded:', process.env.GEMINI_API_KEY ? 'YES' : 'NO');
+console.log('🔑 API Key length:', process.env.GEMINI_API_KEY?.length || 0);
 
 const app = express();
 const PORT = process.env.PORT || 3001;

@@ -1,9 +1,12 @@
 import fetch from 'node-fetch';
 
 const MODEL = "gemini-2.0-flash-exp";
-const API_KEY = process.env.GEMINI_API_KEY;
 
 export async function callGemini(prompt, temperature = 0.7) {
+  const API_KEY = process.env.GEMINI_API_KEY;
+  
+  console.log('🔍 Gemini service - API Key check:', API_KEY ? `Found (${API_KEY.length} chars)` : 'NOT FOUND');
+  
   if (!API_KEY) {
     throw new Error('GEMINI_API_KEY not configured');
   }

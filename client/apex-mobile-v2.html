@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Apex Protocol</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --bg-dark: #0c0a09;
+            --bg-card: #1c1917;
+            --border: #44403c;
+            --text-primary: #e7e5e4;
+            --text-secondary: #78716c;
+        }
+        
+        html, body { 
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 0.4s ease-out;
+        }
+        
+        #loader.fade {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #292524;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loader-text {
+            margin-top: 16px;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+        }
+        
+        /* App Container - Fixed Height */
+        #app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Views */
+        .view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .view.active {
+            display: flex;
+        }
+        
+        /* Header - Fixed */
+        .header {
+            flex-shrink: 0;
+            padding: 16px 16px 12px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .header-title {
+            color: var(--primary);
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+        }
+        
+        /* Content - Scrollable */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px;
+        }
+        
+        /* Bottom Nav - Fixed */
+        .nav {
+            flex-shrink: 0;
+            height: 70px;
+            background: linear-gradient(to top, var(--bg-dark), var(--bg-card));
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            color: #57534e;
+            background: none;
+            border: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .nav-btn.active {
+            color: var(--primary);
+            background: rgba(249, 115, 22, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(249, 115, 22, 0.8);
+        }
+        
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.5;
+        }
+        
+        .nav-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        /* Cards - Compact */
+        .card {
+            background: linear-gradient(135deg, var(--bg-card), #292524);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .card:active {
+            border-left-color: var(--primary);
+            transform: scale(0.98);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .rank-badge {
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .card-value {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .card-name {
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+        
+        .card-tagline {
+            color: #d6d3d1;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        /* Empty State */
+        .empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+            stroke: currentColor;
+        }
+        
+        .empty-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        
+        .empty-text {
+            font-size: 11px;
+            color: #57534e;
+        }
+        
+        /* Forms - Compact */
+        .form-group {
+            margin-bottom: 14px;
+        }
+        
+        .label {
+            color: var(--primary);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+            letter-spacing: 0.1em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .input, .select, .textarea {
+            width: 100%;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .input:focus, .select:focus, .textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+        }
+        
+        .textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
+        
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-dark), #c2410c);
+            color: white;
+            font-weight: 700;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            box-shadow: none;
+        }
+        
+        /* Detail View */
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        
+        .detail-section {
+            background: linear-gradient(135deg, var(--bg-card), #292524);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .section-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .section-text {
+            color: #d6d3d1;
+            line-height: 1.5;
+            font-size: 12px;
+        }
+        
+        /* Scrollbar */
+        .content::-webkit-scrollbar { width: 4px; }
+        .content::-webkit-scrollbar-track { background: transparent; }
+        .content::-webkit-scrollbar-thumb { 
+            background: var(--primary); 
+            border-radius: 2px; 
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="loader-text">INITIALIZING</div>
+    </div>
+    
+    <!-- App Container -->
+    <div id="app">
+        
+        <!-- Ideas View -->
+        <div id="v-ideas" class="view active">
+            <div class="header">
+                <div class="header-title">APEX PROTOCOL</div>
+                <div class="header-subtitle" id="idea-count">NO OPERATIONS</div>
+            </div>
+            <div class="content" id="ideas-list"></div>
+        </div>
+        
+        <!-- Detail View -->
+        <div id="v-detail" class="view">
+            <div class="header">
+                <button class="back-btn" onclick="showView('ideas')">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Back
+                </button>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span class="rank-badge" id="detail-rank">#1</span>
+                    <span class="card-value" id="detail-value">$10M</span>
+                </div>
+                <div class="card-name" id="detail-name">Project</div>
+                <div class="card-tagline" id="detail-tagline">Tagline</div>
+            </div>
+            <div class="content" id="detail-content"></div>
+        </div>
+        
+        <!-- New View -->
+        <div id="v-new" class="view">
+            <div class="header">
+                <div class="header-title">NEW OPERATION</div>
+                <div class="header-subtitle">GENERATE IDEAS</div>
+            </div>
+            <div class="content">
+                <form onsubmit="event.preventDefault(); generate();">
+                    <div class="form-group">
+                        <label class="label">Domain</label>
+                        <input id="domain" class="input" placeholder="AI healthcare" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label">Catalyst</label>
+                        <textarea id="catalyst" class="textarea" placeholder="Optional constraints"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label">Risk</label>
+                        <select id="risk" class="select">
+                            <option value="safe">Safe</option>
+                            <option value="balanced" selected>Balanced</option>
+                            <option value="moonshot">Moonshot</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn">INITIALIZE</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Settings View -->
+        <div id="v-settings" class="view">
+            <div class="header">
+                <div class="header-title">SETTINGS</div>
+                <div class="header-subtitle">CONFIGURATION</div>
+            </div>
+            <div class="content">
+                <div class="form-group">
+                    <label class="label">API Key</label>
+                    <input type="password" id="api-key" class="input" placeholder="Gemini API Key">
+                </div>
+                
+                <button onclick="saveKey()" class="btn">SAVE</button>
+                
+                <button onclick="clearData()" class="btn btn-secondary" style="margin-top: 10px;">CLEAR DATA</button>
+                
+                <div class="detail-section" style="margin-top: 20px;">
+                    <div class="section-label">ABOUT</div>
+                    <div class="section-text">
+                        <strong>Apex Protocol v5.1</strong><br>
+                        AI-powered startup idea generator
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Nav -->
+        <nav class="nav">
+            <button class="nav-btn active" onclick="showView('ideas')">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <span class="nav-label">Ideas</span>
+            </button>
+            <button class="nav-btn" onclick="showView('new')">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                <span class="nav-label">New</span>
+            </button>
+            <button class="nav-btn" onclick="showView('settings')">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span class="nav-label">Settings</span>
+            </button>
+        </nav>
+        
+    </div>
+    
+    <script>
+        let state = {
+            ideas: [],
+            activeId: null,
+            apiKey: localStorage.getItem('apex_api_key') || ''
+        };
+        
+        const API_URL = 'http://192.168.12.152:3001/api';
+        
+        window.addEventListener('load', () => {
+            const keyInput = document.getElementById('api-key');
+            if (keyInput && state.apiKey) keyInput.value = state.apiKey;
+            
+            state.ideas = [];
+            renderIdeas();
+            
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.classList.add('fade');
+                setTimeout(() => loader.style.display = 'none', 400);
+            }, 500);
+        });
+        
+        function showView(name) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('v-' + name).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+                btn.classList.remove('active');
+                if ((name === 'ideas' && i === 0) || (name === 'new' && i === 1) || (name === 'settings' && i === 2)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function renderIdeas() {
+            const container = document.getElementById('ideas-list');
+            const count = document.getElementById('idea-count');
+            
+            const total = state.ideas.length;
+            count.textContent = total === 0 ? 'NO OPERATIONS' : `${total} OPERATION${total !== 1 ? 'S' : ''}`;
+            
+            if (total === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        <div class="empty-title">No Operations</div>
+                        <div class="empty-text">Tap "New" to generate ideas</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = state.ideas.map((idea, i) => `
+                <div class="card" onclick="showDetail(${idea.id})">
+                    <div class="card-header">
+                        <span class="rank-badge">#${i + 1}</span>
+                        <span class="card-value">${idea.val || '$10M'}</span>
+                    </div>
+                    <div class="card-name">${idea.name}</div>
+                    <div class="card-tagline">${idea.tag}</div>
+                </div>
+            `).join('');
+        }
+        
+        function showDetail(id) {
+            const idea = state.ideas.find(i => i.id === id);
+            if (!idea) return;
+            
+            state.activeId = id;
+            const idx = state.ideas.indexOf(idea);
+            
+            document.getElementById('detail-rank').textContent = `#${idx + 1}`;
+            document.getElementById('detail-value').textContent = idea.val || '$10M';
+            document.getElementById('detail-name').textContent = idea.name;
+            document.getElementById('detail-tagline').textContent = idea.tag;
+            
+            const content = document.getElementById('detail-content');
+            content.innerHTML = `
+                <div class="detail-section">
+                    <div class="section-label" style="color: var(--primary);">AGONY</div>
+                    <div class="section-text">${idea.agony}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="section-label" style="color: #3b82f6;">SOLUTION</div>
+                    <div class="section-text">${idea.solution}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="section-label">MOAT</div>
+                    <div class="section-text">${idea.moat}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="section-label">REVENUE</div>
+                    <div class="section-text">${idea.revenue}</div>
+                </div>
+                ${idea.blueprint ? `
+                    <div class="detail-section">
+                        <div class="section-label">ROADMAP</div>
+                        ${idea.blueprint.map((step, i) => `
+                            <div style="background: rgba(249, 115, 22, 0.05); border-left: 2px solid var(--primary); padding: 10px; margin-bottom: 8px; border-radius: 6px;">
+                                <div style="color: var(--primary); font-size: 9px; font-weight: 700; margin-bottom: 4px;">PHASE ${i + 1}</div>
+                                <div style="color: #d6d3d1; font-size: 11px; line-height: 1.5;">${step}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+            
+            showView('detail');
+        }
+        
+        async function generate() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            loader.classList.remove('fade');
+            
+            const domain = document.getElementById('domain').value;
+            const catalyst = document.getElementById('catalyst').value;
+            const risk = document.getElementById('risk').value;
+            
+            try {
+                const res = await fetch(`${API_URL}/ideas/generate`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ domain, catalyst, risk })
+                });
+                
+                if (!res.ok) throw new Error('API failed');
+                const data = await res.json();
+                state.ideas = data.ideas || [];
+            } catch(e) {
+                state.ideas = generateFallback(domain, risk);
+            }
+            
+            renderIdeas();
+            
+            setTimeout(() => {
+                loader.classList.add('fade');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    showView('ideas');
+                }, 400);
+            }, 1500);
+        }
+        
+        function generateFallback(domain, risk) {
+            const base = [
+                { pre: 'AI', suf: 'Platform' },
+                { pre: 'Smart', suf: 'Network' },
+                { pre: 'Auto', suf: 'System' },
+                { pre: 'Predictive', suf: 'Engine' },
+                { pre: 'Distributed', suf: 'Hub' }
+            ];
+            
+            return base.map((b, i) => ({
+                id: Date.now() + i,
+                name: `${b.pre} ${domain.split(' ')[0]} ${b.suf}`,
+                tag: `Revolutionary ${domain.toLowerCase()} solution`,
+                val: ['$500M', '$1.2B', '$850M', '$2.5B', '$400M'][i],
+                agony: `${domain} industry faces inefficiency`,
+                solution: `AI-powered ${domain.toLowerCase()} transformation`,
+                moat: risk === 'moonshot' ? 'Proprietary tech' : 'First-mover',
+                revenue: risk === 'safe' ? 'SaaS subscription' : 'Platform fees',
+                blueprint: ['Build MVP', 'Launch pilot', 'Iterate', 'Scale']
+            }));
+        }
+        
+        function saveKey() {
+            const key = document.getElementById('api-key').value;
+            state.apiKey = key;
+            localStorage.setItem('apex_api_key', key);
+            alert('✅ API Key saved!');
+        }
+        
+        function clearData() {
+            if (confirm('Clear all ideas?')) {
+                state.ideas = [];
+                renderIdeas();
+                showView('ideas');
+                alert('✅ Data cleared!');
+            }
+        }
+    </script>
+</body>
+</html>

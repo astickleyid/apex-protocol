@@ -24,45 +24,15 @@ jobs:
       - name: Prepare Capacitor iOS assets
         run: |
           set -euo pipefail
-          if [ ! -f capacitor.config.json ]; then
-            echo "capacitor.config.json is missing."
-            exit 1
-          fi
-          if [ ! -f package.json ]; then
-            echo "package.json is missing."
-            exit 1
-          fi
           mkdir -p ios/App/App
           cp capacitor.config.json ios/App/App/capacitor.config.json
-          node - <<'NODE'
-          const fs = require('fs');
-          const path = require('path');
-          const escape = (v) => String(v)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;');
-          const cfg = JSON.parse(fs.readFileSync('capacitor.config.json', 'utf8'));
-          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          if (!cfg.appId) throw new Error('appId missing');
-          if (!cfg.appName) throw new Error('appName missing');
-          if (!pkg.version) throw new Error('version missing');
-          const xml = `<?xml version='1.0' encoding='utf-8'?>
-<widget id="${escape(cfg.appId)}" version="${escape(pkg.version)}" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-  <name>${escape(cfg.appName)}</name>
-  <content src="index.html" />
-  <allow-navigation href="*" />
-</widget>
-`;
-          fs.writeFileSync(path.join('ios', 'App', 'App', 'config.xml'), xml.trim() + '\n', 'utf8');
-          NODE
+          node scripts/prepare-capacitor-config.js
           rm -rf ios/App/App/public
           if [ ! -d dist ]; then
             echo "dist directory not found; ensure npm run build produced output."
             exit 1
           fi
-          if ! ls -A dist >/dev/null 2>&1; then
+          if [ -z "$(ls -A dist)" ]; then
             echo "dist directory is empty; ensure the web build succeeded."
             exit 1
           fi

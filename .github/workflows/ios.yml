@@ -2,10 +2,8 @@ name: iOS starter workflow
 
 on:
   push:
-    branches: [ "main", "copilot/fix-ios-starter-workflow" ]
-  pull_request:
     branches: [ "main" ]
-  pull_request_target:
+  pull_request:
     branches: [ "main" ]
   workflow_dispatch:
 
@@ -25,12 +23,15 @@ jobs:
         run: npm run build
       - name: Prepare Capacitor iOS assets
         run: |
+          APP_ID=$(node -p "require('./capacitor.config.json').appId")
+          APP_NAME=$(node -p "require('./capacitor.config.json').appName")
+          APP_VERSION=$(node -p "require('./package.json').version")
           mkdir -p ios/App/App
           cp capacitor.config.json ios/App/App/capacitor.config.json
-          cat > ios/App/App/config.xml <<'EOF'
+          cat > ios/App/App/config.xml <<EOF
           <?xml version='1.0' encoding='utf-8'?>
-          <widget id="com.apex.protocol" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-            <name>Apex Protocol</name>
+          <widget id="${APP_ID}" version="${APP_VERSION}" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+            <name>${APP_NAME}</name>
             <content src="index.html" />
             <allow-navigation href="*" />
           </widget>

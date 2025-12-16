@@ -23,6 +23,7 @@ jobs:
         run: npm run build
       - name: Prepare Capacitor iOS assets
         run: |
+          set -euo pipefail
           APP_ID=$(node -p "require('./capacitor.config.json').appId")
           APP_NAME=$(node -p "require('./capacitor.config.json').appName")
           APP_VERSION=$(node -p "require('./package.json').version")
@@ -37,6 +38,10 @@ jobs:
           </widget>
           EOF
           rm -rf ios/App/App/public
+          if [ ! -d dist ]; then
+            echo "dist directory not found; ensure npm run build produced output."
+            exit 1
+          fi
           cp -R dist ios/App/App/public
       - name: Set Default Scheme
         run: |

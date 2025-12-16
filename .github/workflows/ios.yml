@@ -32,8 +32,11 @@ jobs:
             echo "package.json is missing."
             exit 1
           fi
-          eval "$(node - <<'NODE'
+          mkdir -p ios/App/App
+          cp capacitor.config.json ios/App/App/capacitor.config.json
+          node - <<'NODE'
           const fs = require('fs');
+          const path = require('path');
           const escape = (v) => String(v)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -45,27 +48,21 @@ jobs:
           if (!cfg.appId) throw new Error('appId missing');
           if (!cfg.appName) throw new Error('appName missing');
           if (!pkg.version) throw new Error('version missing');
-          console.log(`APP_ID="${escape(cfg.appId)}"`);
-          console.log(`APP_NAME="${escape(cfg.appName)}"`);
-          console.log(`APP_VERSION="${escape(pkg.version)}"`);
-          NODE
-          )"
-          mkdir -p ios/App/App
-          cp capacitor.config.json ios/App/App/capacitor.config.json
-          cat > ios/App/App/config.xml <<EOF
-          <?xml version='1.0' encoding='utf-8'?>
-          <widget id="${APP_ID}" version="${APP_VERSION}" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-            <name>${APP_NAME}</name>
+          const xml = `<?xml version='1.0' encoding='utf-8'?>
+          <widget id="${escape(cfg.appId)}" version="${escape(pkg.version)}" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+            <name>${escape(cfg.appName)}</name>
             <content src="index.html" />
             <allow-navigation href="*" />
           </widget>
-          EOF
+          `;
+          fs.writeFileSync(path.join('ios', 'App', 'App', 'config.xml'), xml.trim() + '\n', 'utf8');
+          NODE
           rm -rf ios/App/App/public
           if [ ! -d dist ]; then
             echo "dist directory not found; ensure npm run build produced output."
             exit 1
           fi
-          if [ -z "$(ls -A dist)" ]; then
+          if ! find dist -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
             echo "dist directory is empty; ensure the web build succeeded."
             exit 1
           fi

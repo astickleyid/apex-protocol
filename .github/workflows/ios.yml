@@ -49,12 +49,12 @@ jobs:
           if (!cfg.appName) throw new Error('appName missing');
           if (!pkg.version) throw new Error('version missing');
           const xml = `<?xml version='1.0' encoding='utf-8'?>
-          <widget id="${escape(cfg.appId)}" version="${escape(pkg.version)}" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-            <name>${escape(cfg.appName)}</name>
-            <content src="index.html" />
-            <allow-navigation href="*" />
-          </widget>
-          `;
+<widget id="${escape(cfg.appId)}" version="${escape(pkg.version)}" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <name>${escape(cfg.appName)}</name>
+  <content src="index.html" />
+  <allow-navigation href="*" />
+</widget>
+`;
           fs.writeFileSync(path.join('ios', 'App', 'App', 'config.xml'), xml.trim() + '\n', 'utf8');
           NODE
           rm -rf ios/App/App/public
@@ -62,7 +62,7 @@ jobs:
             echo "dist directory not found; ensure npm run build produced output."
             exit 1
           fi
-          if ! find dist -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
+          if ! ls -A dist >/dev/null 2>&1; then
             echo "dist directory is empty; ensure the web build succeeded."
             exit 1
           fi

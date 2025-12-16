@@ -21,13 +21,9 @@ jobs:
         run: npm ci
       - name: Build web assets
         run: npm run build
-      - name: Prepare Capacitor iOS assets
+      - name: Validate web build output
         run: |
           set -euo pipefail
-          mkdir -p ios/App/App
-          cp capacitor.config.json ios/App/App/capacitor.config.json
-          node scripts/prepare-capacitor-config.js
-          rm -rf ios/App/App/public
           if [ ! -d dist ]; then
             echo "dist directory not found; ensure npm run build produced output."
             exit 1
@@ -36,6 +32,13 @@ jobs:
             echo "dist directory is empty; ensure the web build succeeded."
             exit 1
           fi
+      - name: Prepare Capacitor iOS assets
+        run: |
+          set -euo pipefail
+          mkdir -p ios/App/App
+          cp capacitor.config.json ios/App/App/capacitor.config.json
+          node scripts/prepare-capacitor-config.js
+          rm -rf ios/App/App/public
           cp -R dist ios/App/App/public
       - name: Set Default Scheme
         run: |

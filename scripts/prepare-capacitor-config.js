@@ -6,6 +6,7 @@ const path = require('path');
 const cfgPath = path.resolve('capacitor.config.json');
 const pkgPath = path.resolve('package.json');
 const destPath = path.resolve('ios', 'App', 'App', 'config.xml');
+const destDir = path.dirname(destPath);
 
 if (!fs.existsSync(cfgPath)) {
   throw new Error('capacitor.config.json is missing.');
@@ -36,5 +37,9 @@ const xml = `<?xml version='1.0' encoding='utf-8'?>
   <allow-navigation href="*" />
 </widget>
 `;
+
+if (!fs.existsSync(destDir)) {
+  throw new Error(`Destination directory is missing: ${destDir}`);
+}
 
 fs.writeFileSync(destPath, xml.trim() + '\n', 'utf8');

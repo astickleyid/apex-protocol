@@ -2,9 +2,10 @@ name: iOS starter workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "copilot/fix-ios-starter-workflow" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:

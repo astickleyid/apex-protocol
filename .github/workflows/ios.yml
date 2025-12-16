@@ -32,9 +32,24 @@ jobs:
             echo "package.json is missing."
             exit 1
           fi
-          APP_ID=$(node -e "const cfg=require('./capacitor.config.json'); if(!cfg.appId) throw new Error('appId missing'); console.log(cfg.appId)")
-          APP_NAME=$(node -e "const cfg=require('./capacitor.config.json'); if(!cfg.appName) throw new Error('appName missing'); console.log(cfg.appName)")
-          APP_VERSION=$(node -e "const pkg=require('./package.json'); if(!pkg.version) throw new Error('version missing'); console.log(pkg.version)")
+          eval "$(node - <<'NODE'
+          const fs = require('fs');
+          const escape = (v) => String(v)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+          const cfg = JSON.parse(fs.readFileSync('capacitor.config.json', 'utf8'));
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          if (!cfg.appId) throw new Error('appId missing');
+          if (!cfg.appName) throw new Error('appName missing');
+          if (!pkg.version) throw new Error('version missing');
+          console.log(`APP_ID="${escape(cfg.appId)}"`);
+          console.log(`APP_NAME="${escape(cfg.appName)}"`);
+          console.log(`APP_VERSION="${escape(pkg.version)}"`);
+          NODE
+          )"
           mkdir -p ios/App/App
           cp capacitor.config.json ios/App/App/capacitor.config.json
           cat > ios/App/App/config.xml <<EOF

@@ -24,9 +24,17 @@ jobs:
       - name: Prepare Capacitor iOS assets
         run: |
           set -euo pipefail
-          APP_ID=$(node -p "require('./capacitor.config.json').appId")
-          APP_NAME=$(node -p "require('./capacitor.config.json').appName")
-          APP_VERSION=$(node -p "require('./package.json').version")
+          if [ ! -f capacitor.config.json ]; then
+            echo "capacitor.config.json is missing."
+            exit 1
+          fi
+          if [ ! -f package.json ]; then
+            echo "package.json is missing."
+            exit 1
+          fi
+          APP_ID=$(node -e "const cfg=require('./capacitor.config.json'); if(!cfg.appId) throw new Error('appId missing'); console.log(cfg.appId)")
+          APP_NAME=$(node -e "const cfg=require('./capacitor.config.json'); if(!cfg.appName) throw new Error('appName missing'); console.log(cfg.appName)")
+          APP_VERSION=$(node -e "const pkg=require('./package.json'); if(!pkg.version) throw new Error('version missing'); console.log(pkg.version)")
           mkdir -p ios/App/App
           cp capacitor.config.json ios/App/App/capacitor.config.json
           cat > ios/App/App/config.xml <<EOF
@@ -40,6 +48,10 @@ jobs:
           rm -rf ios/App/App/public
           if [ ! -d dist ]; then
             echo "dist directory not found; ensure npm run build produced output."
+            exit 1
+          fi
+          if [ -z "$(ls -A dist)" ]; then
+            echo "dist directory is empty; ensure the web build succeeded."
             exit 1
           fi
           cp -R dist ios/App/App/public

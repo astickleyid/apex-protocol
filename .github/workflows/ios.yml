@@ -14,13 +14,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Capacitor Build Files
+        run: |
+          # Create required directories and files for Capacitor build
+          mkdir -p ios/App/App/public
+          cat > ios/App/App/config.xml << 'EOF'
+          <?xml version='1.0' encoding='utf-8'?>
+          <widget id="com.apex.protocol" version="5.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+              <name>Apex Protocol</name>
+              <description>AI-Powered Startup Idea Generation and Analysis Platform</description>
+              <author email="dev@apex-protocol.com" href="https://github.com/astickleyid/apex-protocol">
+                  Apex Protocol Team
+              </author>
+              <content src="index.html" />
+              <access origin="*" />
+              <allow-intent href="http://*/*" />
+              <allow-intent href="https://*/*" />
+              <allow-intent href="tel:*" />
+              <allow-intent href="sms:*" />
+              <allow-intent href="mailto:*" />
+              <allow-intent href="geo:*" />
+              <platform name="ios">
+                  <allow-intent href="itms:*" />
+                  <allow-intent href="itms-apps:*" />
+              </platform>
+          </widget>
+          EOF
       - name: Set Default Scheme
+        working-directory: ios/App
         run: |
           scheme_list=$(xcodebuild -list -json | tr -d "\n")
           default=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][0]")
           echo $default | cat >default
           echo Using default scheme: $default
       - name: Build
+        working-directory: ios/App
         env:
           scheme: ${{ 'default' }}
           platform: ${{ 'iOS Simulator' }}
@@ -32,6 +60,7 @@ jobs:
           file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
           xcodebuild build-for-testing -scheme "$scheme" -"$filetype_parameter" "$file_to_build" -destination "platform=$platform,name=$device"
       - name: Test
+        working-directory: ios/App
         env:
           scheme: ${{ 'default' }}
           platform: ${{ 'iOS Simulator' }}

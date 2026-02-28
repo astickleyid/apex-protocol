@@ -954,9 +954,15 @@
         </div>
     </nav>
 
-    <script type="module">
+    <script>
 // Apex Protocol Mobile App - Complete Implementation
-import { getApiUrl } from './api-config.js';
+// Auto-detect API
+function getApiUrl() {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        return 'http://192.168.12.152:3001/api';
+    }
+    return '/api';
+}
 
 const API_BASE = getApiUrl();
 const MODEL = "gemini-2.0-flash-exp";

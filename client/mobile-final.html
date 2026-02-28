@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Apex Protocol</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #0c0a09; 
+            color: #e7e5e4; 
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        
+        /* Loading Screen - SIMPLE */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0c0a09;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 0.3s;
+        }
+        
+        #loader.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #292524;
+            border-top-color: #f97316;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Scroll indicator */
+        #scrollBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316, #ea580c);
+            z-index: 9998;
+            transition: width 0.1s;
+        }
+        
+        /* Bottom Nav */
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: #1c1917;
+            border-top: 2px solid #44403c;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 9997;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px;
+            color: #57534e;
+            background: none;
+            border: none;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        
+        .nav-btn.active {
+            color: #f97316;
+            background: rgba(249, 115, 22, 0.15);
+        }
+        
+        .nav-icon {
+            width: 28px;
+            height: 28px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.5;
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        /* Views */
+        .view {
+            display: none;
+            min-height: calc(100vh - 80px);
+            padding: 20px;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        /* Cards */
+        .card {
+            background: #1c1917;
+            border: 1px solid #44403c;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .card:active {
+            border-left-color: #f97316;
+            transform: scale(0.98);
+        }
+        
+        .title {
+            color: #f97316;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #78716c;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ea580c, #c2410c);
+            color: white;
+            font-weight: 700;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+        }
+        
+        .btn:active {
+            transform: translateY(2px);
+        }
+        
+        .input, .select, .textarea {
+            width: 100%;
+            background: #1c1917;
+            border: 2px solid #44403c;
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .label {
+            color: #f97316;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1c1917; }
+        ::-webkit-scrollbar-thumb { background: #f97316; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <!-- Simple Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Scroll Progress -->
+    <div id="scrollBar"></div>
+    
+    <!-- Ideas View -->
+    <div id="v-ideas" class="view active">
+        <div class="title">APEX PROTOCOL</div>
+        <div class="subtitle" id="count">Loading...</div>
+        <div id="ideas"></div>
+    </div>
+    
+    <!-- New View -->
+    <div id="v-new" class="view">
+        <div class="title">New Operation</div>
+        <div class="subtitle">Generate startup ideas</div>
+        <form onsubmit="event.preventDefault(); generate();">
+            <label class="label">Domain</label>
+            <input id="domain" class="input" placeholder="e.g. AI healthcare" required>
+            
+            <label class="label">Catalyst</label>
+            <textarea id="catalyst" class="textarea" placeholder="Optional constraints"></textarea>
+            
+            <label class="label">Risk</label>
+            <select id="risk" class="select">
+                <option value="safe">Safe</option>
+                <option value="balanced" selected>Balanced</option>
+                <option value="moonshot">Moonshot</option>
+            </select>
+            
+            <button type="submit" class="btn">Initialize</button>
+        </form>
+    </div>
+    
+    <!-- Settings View -->
+    <div id="v-settings" class="view">
+        <div class="title">Settings</div>
+        <div class="subtitle">Configuration</div>
+        
+        <label class="label">API Key</label>
+        <input type="password" id="apikey" class="input" placeholder="Gemini API Key">
+        <button onclick="saveKey()" class="btn">Save</button>
+    </div>
+    
+    <!-- Bottom Nav -->
+    <nav class="nav">
+        <button class="nav-btn active" onclick="showView('ideas')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            <span class="nav-label">Ideas</span>
+        </button>
+        <button class="nav-btn" onclick="showView('new')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+            <span class="nav-label">New</span>
+        </button>
+        <button class="nav-btn" onclick="showView('settings')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="nav-label">Settings</span>
+        </button>
+    </nav>
+    
+    <script>
+        // State
+        let ideas = [];
+        let apiKey = localStorage.getItem('apex_key') || '';
+        
+        // Init
+        window.addEventListener('load', () => {
+            console.log('App loading...');
+            
+            // Load data
+            const stored = localStorage.getItem('apex_ideas');
+            if (stored) {
+                ideas = JSON.parse(stored);
+            } else {
+                ideas = getFallback();
+                localStorage.setItem('apex_ideas', JSON.stringify(ideas));
+            }
+            
+            // Load API key
+            const keyInput = document.getElementById('apikey');
+            if (keyInput && apiKey) keyInput.value = apiKey;
+            
+            // Render
+            render();
+            
+            // Hide loader
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.classList.add('hide');
+                setTimeout(() => loader.remove(), 300);
+                console.log('Loader removed');
+            }, 500);
+        });
+        
+        // Navigation
+        function showView(name) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('v-' + name).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+                btn.classList.remove('active');
+                if ((name === 'ideas' && i === 0) || (name === 'new' && i === 1) || (name === 'settings' && i === 2)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Render ideas
+        function render() {
+            const container = document.getElementById('ideas');
+            const count = document.getElementById('count');
+            
+            count.textContent = ideas.length + ' IDEAS';
+            
+            if (ideas.length === 0) {
+                container.innerHTML = '<div class="card">No ideas yet. Tap "New" to generate.</div>';
+                return;
+            }
+            
+            container.innerHTML = ideas.map((idea, i) => `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="color: #f97316; font-weight: 700; font-size: 14px;">#${i+1}</span>
+                        <span style="color: #78716c; font-size: 12px;">${idea.val || '$10M'}</span>
+                    </div>
+                    <div style="color: white; font-weight: 700; font-size: 18px; margin-bottom: 8px;">${idea.name}</div>
+                    <div style="color: #d6d3d1; font-size: 14px; line-height: 1.5;">${idea.tag}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Generate
+        async function generate() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            loader.classList.remove('hide');
+            
+            const domain = document.getElementById('domain').value;
+            
+            setTimeout(() => {
+                ideas = getFallback();
+                localStorage.setItem('apex_ideas', JSON.stringify(ideas));
+                render();
+                
+                loader.classList.add('hide');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    showView('ideas');
+                }, 300);
+            }, 2000);
+        }
+        
+        // Save API key
+        function saveKey() {
+            const key = document.getElementById('apikey').value;
+            apiKey = key;
+            localStorage.setItem('apex_key', key);
+            alert('API Key saved!');
+        }
+        
+        // Fallback data
+        function getFallback() {
+            return [
+                {id:1, name:"AdminAI", tag:"Automate life admin with AI", val:"$1.2B"},
+                {id:2, name:"LegacyVault", tag:"Digital estate planning", val:"$850M"},
+                {id:3, name:"DeepVax", tag:"In-silico drug trials", val:"$4B"},
+                {id:4, name:"Fabric", tag:"Local manufacturing network", val:"$300M"},
+                {id:5, name:"Orbit", tag:"Third place for connection", val:"$150M"}
+            ];
+        }
+        
+        // Scroll tracking
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scrollBar').style.width = scrolled + '%';
+        });
+        
+        console.log('App script loaded');
+    </script>
+</body>
+</html>

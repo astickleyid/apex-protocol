@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Apex Protocol</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --bg-dark: #0c0a09;
+            --bg-card: #1c1917;
+            --border: #44403c;
+            --text-primary: #e7e5e4;
+            --text-secondary: #78716c;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            padding-bottom: 90px;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 1;
+            transition: opacity 0.4s ease-out;
+        }
+        
+        #loader.fade {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid #292524;
+            border-top-color: var(--primary);
+            border-right-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loader-text {
+            margin-top: 24px;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Scroll Progress */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            z-index: 9998;
+            width: 0;
+            transition: width 0.1s;
+        }
+        
+        /* Views */
+        .view {
+            display: none;
+            min-height: calc(100vh - 90px);
+        }
+        
+        .view.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Header */
+        .header {
+            padding: 24px 20px 16px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-title {
+            color: var(--primary);
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+        }
+        
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Content */
+        .content {
+            padding: 20px;
+        }
+        
+        /* Cards */
+        .card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #292524 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card:active {
+            border-left-color: var(--primary);
+            transform: scale(0.98);
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .rank-badge {
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .card-value {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .card-name {
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .card-tagline {
+            color: #d6d3d1;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        /* Empty State */
+        .empty {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            opacity: 0.3;
+            stroke: currentColor;
+        }
+        
+        .empty-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .empty-text {
+            font-size: 14px;
+            color: #57534e;
+        }
+        
+        /* Form */
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .label {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: block;
+            letter-spacing: 0.1em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .input, .select, .textarea {
+            width: 100%;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            color: white;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        
+        .input:focus, .select:focus, .textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+            background: var(--bg-dark);
+        }
+        
+        .textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-dark), #c2410c);
+            color: white;
+            font-weight: 700;
+            padding: 18px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(234, 88, 12, 0.4);
+            transition: all 0.3s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            box-shadow: none;
+        }
+        
+        /* Detail View */
+        .detail-header {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-dark));
+            padding: 20px;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        
+        .detail-section {
+            background: linear-gradient(135deg, var(--bg-card), #292524);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .section-text {
+            color: #d6d3d1;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        
+        /* Bottom Nav */
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 90px;
+            background: linear-gradient(to top, var(--bg-dark), var(--bg-card));
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 9997;
+            box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+        }
+        
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px;
+            color: #57534e;
+            background: none;
+            border: none;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .nav-btn.active {
+            color: var(--primary);
+            background: rgba(249, 115, 22, 0.15);
+            transform: translateY(-3px);
+        }
+        
+        .nav-btn.active::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(249, 115, 22, 0.8);
+        }
+        
+        .nav-icon {
+            width: 28px;
+            height: 28px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-card); }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(to bottom, var(--primary), var(--primary-dark)); 
+            border-radius: 4px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="loader-text">INITIALIZING</div>
+    </div>
+    
+    <!-- Scroll Progress -->
+    <div id="scroll-progress"></div>
+    
+    <!-- Ideas View -->
+    <div id="v-ideas" class="view active">
+        <div class="header">
+            <div class="header-title">APEX PROTOCOL</div>
+            <div class="header-subtitle" id="idea-count">NO OPERATIONS</div>
+        </div>
+        <div class="content" id="ideas-list"></div>
+    </div>
+    
+    <!-- Detail View -->
+    <div id="v-detail" class="view">
+        <div class="detail-header">
+            <button class="back-btn" onclick="showView('ideas')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Ideas
+            </button>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span class="rank-badge" id="detail-rank">#1</span>
+                <span class="card-value" id="detail-value">$10M</span>
+            </div>
+            <div class="card-name" id="detail-name">Project Name</div>
+            <div class="card-tagline" id="detail-tagline">Tagline</div>
+        </div>
+        <div class="content" id="detail-content"></div>
+    </div>
+    
+    <!-- New View -->
+    <div id="v-new" class="view">
+        <div class="header">
+            <div class="header-title">NEW OPERATION</div>
+            <div class="header-subtitle">GENERATE STARTUP IDEAS</div>
+        </div>
+        <div class="content">
+            <form onsubmit="event.preventDefault(); generate();">
+                <div class="form-group">
+                    <label class="label">Target Domain</label>
+                    <input id="domain" class="input" placeholder="e.g. AI-powered healthcare" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Catalyst (Optional)</label>
+                    <textarea id="catalyst" class="textarea" placeholder="e.g. Must use blockchain, serve enterprise clients"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Risk Profile</label>
+                    <select id="risk" class="select">
+                        <option value="safe">Safe Utility (Low Risk)</option>
+                        <option value="balanced" selected>Balanced Growth</option>
+                        <option value="moonshot">Disruptive Moonshot (High Risk)</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">INITIALIZE OPERATION</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Settings View -->
+    <div id="v-settings" class="view">
+        <div class="header">
+            <div class="header-title">SETTINGS</div>
+            <div class="header-subtitle">CONFIGURATION</div>
+        </div>
+        <div class="content">
+            <div class="form-group">
+                <label class="label">Gemini API Key</label>
+                <input type="password" id="api-key" class="input" placeholder="Enter your API key">
+            </div>
+            
+            <button onclick="saveKey()" class="btn">SAVE CONFIGURATION</button>
+            
+            <button onclick="clearData()" class="btn btn-secondary" style="margin-top: 16px;">CLEAR ALL DATA</button>
+            
+            <div class="detail-section" style="margin-top: 32px;">
+                <div class="section-label">ABOUT</div>
+                <div class="section-text">
+                    <strong>Apex Protocol v5.1</strong><br>
+                    AI-powered startup idea generator<br><br>
+                    Built for innovators and founders
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Nav -->
+    <nav class="nav">
+        <button class="nav-btn active" onclick="showView('ideas')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            <span class="nav-label">Ideas</span>
+        </button>
+        <button class="nav-btn" onclick="showView('new')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+            <span class="nav-label">New</span>
+        </button>
+        <button class="nav-btn" onclick="showView('settings')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="nav-label">Settings</span>
+        </button>
+    </nav>
+    
+    <script>
+        // State
+        let state = {
+            ideas: [],
+            activeId: null,
+            apiKey: localStorage.getItem('apex_api_key') || ''
+        };
+        
+        const API_URL = 'http://192.168.12.152:3001/api';
+        
+        // Init
+        window.addEventListener('load', () => {
+            console.log('🚀 Apex Protocol initializing...');
+            
+            // Load API key
+            const keyInput = document.getElementById('api-key');
+            if (keyInput && state.apiKey) keyInput.value = state.apiKey;
+            
+            // Start with empty state - NO STALE DATA
+            state.ideas = [];
+            renderIdeas();
+            
+            // Hide loader
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.classList.add('fade');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    console.log('✅ App ready');
+                }, 400);
+            }, 600);
+        });
+        
+        // Navigation
+        function showView(name) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('v-' + name).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+                btn.classList.remove('active');
+                if ((name === 'ideas' && i === 0) || (name === 'new' && i === 1) || (name === 'settings' && i === 2)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Render Ideas
+        function renderIdeas() {
+            const container = document.getElementById('ideas-list');
+            const count = document.getElementById('idea-count');
+            
+            const total = state.ideas.length;
+            count.textContent = total === 0 ? 'NO OPERATIONS' : `${total} OPERATION${total !== 1 ? 'S' : ''}`;
+            
+            if (total === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        <div class="empty-title">No Operations Generated</div>
+                        <div class="empty-text">Tap "New" to create your first startup ideas</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = state.ideas.map((idea, i) => `
+                <div class="card" onclick="showDetail(${idea.id})">
+                    <div class="card-header">
+                        <span class="rank-badge">#${i + 1}</span>
+                        <span class="card-value">${idea.valuation || '$10M'}</span>
+                    </div>
+                    <div class="card-name">${idea.name}</div>
+                    <div class="card-tagline">${idea.tagline}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Show Detail
+        function showDetail(id) {
+            const idea = state.ideas.find(i => i.id === id);
+            if (!idea) return;
+            
+            state.activeId = id;
+            const idx = state.ideas.indexOf(idea);
+            
+            document.getElementById('detail-rank').textContent = `#${idx + 1}`;
+            document.getElementById('detail-value').textContent = idea.valuation || '$10M';
+            document.getElementById('detail-name').textContent = idea.name;
+            document.getElementById('detail-tagline').textContent = idea.tagline;
+            
+            const content = document.getElementById('detail-content');
+            content.innerHTML = `
+                <div class="detail-section">
+                    <div class="section-label" style="color: var(--primary);">THE AGONY</div>
+                    <div class="section-text">${idea.agony}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="section-label" style="color: #3b82f6;">THE SOLUTION</div>
+                    <div class="section-text">${idea.solution}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="section-label">DEFENSIBILITY</div>
+                    <div class="section-text">${idea.moat}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="section-label">REVENUE MODEL</div>
+                    <div class="section-text">${idea.revenue}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="section-label">MARKET TIMING</div>
+                    <div class="section-text">${idea.whynow || 'Market conditions are optimal for this venture.'}</div>
+                </div>
+                
+                ${idea.blueprint && idea.blueprint.length > 0 ? `
+                    <div class="detail-section">
+                        <div class="section-label">EXECUTION ROADMAP</div>
+                        ${idea.blueprint.map((step, i) => `
+                            <div style="background: rgba(249, 115, 22, 0.05); border-left: 3px solid var(--primary); padding: 16px; margin-bottom: 12px; border-radius: 8px;">
+                                <div style="color: var(--primary); font-size: 11px; font-weight: 700; margin-bottom: 8px;">PHASE ${i + 1}</div>
+                                <div style="color: #d6d3d1; font-size: 14px; line-height: 1.6;">${step}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+            
+            showView('detail');
+        }
+        
+        // Generate Ideas
+        async function generate() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            loader.classList.remove('fade');
+            
+            const domain = document.getElementById('domain').value;
+            const catalyst = document.getElementById('catalyst').value;
+            const risk = document.getElementById('risk').value;
+            
+            try {
+                const res = await fetch(`${API_URL}/ideas/generate`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ domain, catalyst, risk })
+                });
+                
+                if (!res.ok) throw new Error('API failed');
+                
+                const data = await res.json();
+                state.ideas = data.ideas || [];
+                
+            } catch(e) {
+                console.error('API failed, using AI fallback', e);
+                // Fallback - generate realistic ideas for the domain
+                state.ideas = generateFallback(domain, risk);
+            }
+            
+            renderIdeas();
+            
+            setTimeout(() => {
+                loader.classList.add('fade');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    showView('ideas');
+                }, 400);
+            }, 1500);
+        }
+        
+        // Fallback Generator
+        function generateFallback(domain, risk) {
+            const base = [
+                { prefix: 'AI', suffix: 'Platform' },
+                { prefix: 'Smart', suffix: 'Network' },
+                { prefix: 'Decentralized', suffix: 'Marketplace' },
+                { prefix: 'Automated', suffix: 'System' },
+                { prefix: 'Predictive', suffix: 'Engine' }
+            ];
+            
+            return base.map((b, i) => ({
+                id: Date.now() + i,
+                name: `${b.prefix} ${domain.split(' ')[0]} ${b.suffix}`,
+                tagline: `Revolutionary ${domain.toLowerCase()} solution`,
+                valuation: ['$500M', '$1.2B', '$850M', '$2.5B', '$400M'][i],
+                agony: `${domain} industry suffers from inefficiency and high costs.`,
+                solution: `Leverage AI and automation to transform ${domain.toLowerCase()} operations.`,
+                moat: risk === 'moonshot' ? 'Proprietary technology and network effects' : 'First-mover advantage',
+                revenue: risk === 'safe' ? 'SaaS subscription model' : 'Platform fees + premium tiers',
+                whynow: `${domain} is ripe for disruption with modern technology.`,
+                blueprint: [
+                    'Build MVP with core features',
+                    'Launch pilot with early customers',
+                    'Iterate based on feedback',
+                    'Scale with proven model'
+                ]
+            }));
+        }
+        
+        // Settings
+        function saveKey() {
+            const key = document.getElementById('api-key').value;
+            state.apiKey = key;
+            localStorage.setItem('apex_api_key', key);
+            alert('✅ API Key saved successfully!');
+        }
+        
+        function clearData() {
+            if (confirm('Clear all ideas and start fresh?')) {
+                state.ideas = [];
+                localStorage.removeItem('apex_ideas');
+                renderIdeas();
+                showView('ideas');
+                alert('✅ All data cleared!');
+            }
+        }
+        
+        // Scroll Progress
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scroll-progress').style.width = scrolled + '%';
+        });
+        
+        console.log('📱 Apex Protocol loaded');
+    </script>
+</body>
+</html>

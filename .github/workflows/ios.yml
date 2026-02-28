@@ -23,6 +23,7 @@ jobs:
             exit 1
           fi
       - name: Set Default Scheme
+        working-directory: ios/App
         run: |
           cd ios/App
           scheme_list=$(xcodebuild -list -json 2>/dev/null || echo "{}")
@@ -35,6 +36,7 @@ jobs:
           echo $default | cat >../../default
           echo Using default scheme: $default
       - name: Build
+        working-directory: ios/App
         env:
           scheme: ${{ 'default' }}
           platform: ${{ 'iOS Simulator' }}
@@ -47,6 +49,7 @@ jobs:
             -project "ios/App/Apex Protocol.xcodeproj" \
             -destination "platform=$platform,name=$device"
       - name: Test
+        working-directory: ios/App
         env:
           scheme: ${{ 'default' }}
           platform: ${{ 'iOS Simulator' }}
